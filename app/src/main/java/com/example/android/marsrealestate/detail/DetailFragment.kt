@@ -29,7 +29,7 @@ import com.example.android.marsrealestate.databinding.FragmentDetailBinding
  */
 class DetailFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+                              savedInstanceState: Bundle?): View {
 
         @Suppress("UNUSED_VARIABLE")
         val application = requireNotNull(activity).application
