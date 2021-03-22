@@ -18,14 +18,18 @@
 package com.example.android.marsrealestate.network
 
 import android.os.Parcelable
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 data class MarsProperty(
+        @SerializedName("id")
         val id: String,
-        @Json(name = "img_src") val imgSrcUrl: String,
+        @SerializedName("img_src")
+        val imgSrcUrl: String,
+        @SerializedName("type")
         val type: String,
+        @SerializedName("price")
         val price: Double
 ) : Parcelable {
     val isRental
