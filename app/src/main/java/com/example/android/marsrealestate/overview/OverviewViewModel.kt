@@ -17,14 +17,15 @@
 
 package com.example.android.marsrealestate.overview
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import android.util.Log
+import androidx.lifecycle.*
 import com.example.android.marsrealestate.network.MarsApi
 import com.example.android.marsrealestate.network.MarsApiFilter
 import com.example.android.marsrealestate.network.MarsProperty
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.launch
+
 
 enum class MarsApiStatus { LOADING, ERROR, DONE }
 
@@ -35,12 +36,13 @@ class OverviewViewModel : ViewModel() {
 
     // The internal MutableLiveData String that stores the most recent response
     private val _status = MutableLiveData<MarsApiStatus>()
+
     // The external immutable LiveData for the response String
     val status: LiveData<MarsApiStatus>
         get() = _status
 
     // Property of MarsProperty
-    private val _properties = MutableLiveData<List<MarsProperty>>()
+    private var _properties = MutableLiveData<List<MarsProperty>>()
     val properties: LiveData<List<MarsProperty>>
         get() = _properties
 
@@ -62,12 +64,27 @@ class OverviewViewModel : ViewModel() {
     private fun getMarsRealEstateProperties(filter: MarsApiFilter) {
         viewModelScope.launch {
             try {
-                _properties.value = MarsApi.retrofitService.getProperties(filter.value)
-                _status.value = MarsApiStatus.DONE
-            } catch(e: Exception) {
+                getReactiveMarsData(filter)
+            } catch (e: Exception) {
+                Log.e("MarsAPIFetcher", "Failed to fetch reactive data", e)
                 _status.value = MarsApiStatus.ERROR
                 _properties.value = ArrayList()
             }
+        }
+    }
+
+    private fun getReactiveMarsData(filter: MarsApiFilter) {
+        MarsApi.run {
+            retrofitService.getProperties(filter.value)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    _properties.value = it
+                    _status.value = MarsApiStatus.DONE
+                }, {
+                    Log.e("MarsAPIFetcher", it.localizedMessage, it)
+                    throw it
+                })
         }
     }
 

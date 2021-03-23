@@ -18,7 +18,9 @@
 package com.example.android.marsrealestate.network
 
 import com.google.gson.GsonBuilder
+import io.reactivex.Observable
 import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -30,16 +32,17 @@ enum class MarsApiFilter(val value: String) {
 
 private const val BASE_URL = "https://android-kotlin-fun-mars-server.appspot.com/"
 
-private val gson = GsonBuilder().serializeNulls().create()
+private val gson = GsonBuilder().create()
 
 private val retrofit = Retrofit.Builder()
         .addConverterFactory(GsonConverterFactory.create(gson))
+        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
         .baseUrl(BASE_URL)
         .build()
 
 interface MarsApiService {
     @GET("realestate")
-    suspend fun getProperties(@Query("filter") type: String): List<MarsProperty>
+    fun getProperties(@Query("filter") type: String): Observable<List<MarsProperty>>
 }
 
 object MarsApi {
